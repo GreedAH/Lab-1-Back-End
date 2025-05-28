@@ -4,7 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { config } from "dotenv";
 import { PrismaClient } from "@prisma/client";
-import { router as apiRouter } from "./routes/api.js";
+import { router as apiRouter } from "./routes/index.js";
 
 // Load environment variables
 config();

@@ -7,11 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Define your models here
-model Example {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  name      String
-  email     String   @unique
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  CLIENT
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  firstName  String   @map("first_name")
+  lastName   String   @map("last_name")
+  email      String   @unique
+  birthday   DateTime
+  password   String
+  role       Role     @default(CLIENT)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
 } 
