@@ -1,5 +1,10 @@
-import { Role } from "@prisma/client/wasm";
 import { Request } from "express";
+
+export enum Role {
+  SUPER_ADMIN = "SUPER_ADMIN",
+  ADMIN = "ADMIN",
+  CLIENT = "CLIENT",
+}
 
 export interface TypedRequest<T> extends Request {
   body: T;
