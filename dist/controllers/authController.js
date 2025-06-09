@@ -1,12 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { ACCESS_TOKEN_EXPIRY, JWT_REFRESH_SECRET, JWT_SECRET, } from "../utils/consts.js";
 const prisma = new PrismaClient();
-// JWT configuration
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key";
-const ACCESS_TOKEN_EXPIRY = "15m";
-const REFRESH_TOKEN_EXPIRY = "7d";
+if (!JWT_SECRET || !JWT_REFRESH_SECRET) {
+    throw new Error("JWT secrets must be defined in environment variables");
+}
+// Generate a shorter refresh token
+const generateRefreshToken = () => {
+    return crypto.randomBytes(32).toString("hex");
+};
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -28,19 +32,20 @@ export const login = async (req, res) => {
             email: user.email,
             role: user.role,
         };
-        // Generate tokens
+        // Generate access token
         const accessToken = jwt.sign(payload, JWT_SECRET, {
             expiresIn: ACCESS_TOKEN_EXPIRY,
         });
-        const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, {
-            expiresIn: REFRESH_TOKEN_EXPIRY,
-        });
+        // Generate a shorter refresh token
+        const refreshToken = generateRefreshToken();
+        // Calculate expiry date for refresh token
+        const refreshTokenDuration = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
         // Store refresh token in database
         await prisma.refreshToken.create({
             data: {
                 token: refreshToken,
                 userId: user.id,
-                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+                expiresAt: new Date(Date.now() + refreshTokenDuration),
             },
         });
         // Remove sensitive data
@@ -58,13 +63,13 @@ export const login = async (req, res) => {
 };
 export const refreshToken = async (req, res) => {
     try {
-        const { refreshToken } = req.body;
-        if (!refreshToken) {
+        const { refreshToken: token } = req.body;
+        if (!token) {
             return res.status(401).json({ message: "Refresh token is required" });
         }
         // Verify refresh token exists and is valid
         const storedToken = await prisma.refreshToken.findUnique({
-            where: { token: refreshToken },
+            where: { token },
             include: { user: true },
         });
         if (!storedToken || new Date() > storedToken.expiresAt) {
@@ -73,7 +78,7 @@ export const refreshToken = async (req, res) => {
                 .json({ message: "Invalid or expired refresh token" });
         }
         // Verify JWT
-        const payload = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+        const payload = jwt.verify(token, JWT_REFRESH_SECRET);
         // Generate new access token
         const newAccessToken = jwt.sign({
             userId: payload.userId,

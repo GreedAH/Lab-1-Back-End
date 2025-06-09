@@ -54,12 +54,17 @@ export const createUser = async (req, res) => {
         const { firstName, lastName, email, birthday, password, role } = req.body;
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
+        // Convert birthday string to proper Date object
+        const birthdayDate = new Date(birthday);
+        if (isNaN(birthdayDate.getTime())) {
+            return res.status(400).json({ error: "Invalid birthday format" });
+        }
         const newUser = await prisma.user.create({
             data: {
                 firstName,
                 lastName,
                 email,
-                birthday,
+                birthday: birthdayDate,
                 password: hashedPassword,
                 role,
             },
@@ -77,6 +82,7 @@ export const createUser = async (req, res) => {
         res.status(201).json(newUser);
     }
     catch (error) {
+        console.log("error", error);
         if (error.code === "P2002") {
             return res.status(400).json({ error: "Email already exists" });
         }
