@@ -38,3 +38,53 @@ export interface UserResponse {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export enum EventStatus {
+  OPEN = "OPEN",
+  ONGOING = "ONGOING",
+  CANCELLED = "CANCELLED",
+  DONE = "DONE",
+}
+
+export interface EventCreateInput {
+  name: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  venue: string;
+  country: string;
+  city: string;
+  status?: EventStatus;
+  maxCapacity: number;
+  price: number;
+}
+
+export interface EventUpdateInput {
+  name?: string;
+  description?: string;
+  startDate?: Date;
+  endDate?: Date;
+  venue?: string;
+  country?: string;
+  city?: string;
+  status?: EventStatus;
+  maxCapacity?: number;
+  price?: number;
+}
+
+export interface EventResponse {
+  id: number;
+  name: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  venue: string;
+  country: string;
+  city: string;
+  status: EventStatus;
+  maxCapacity: number;
+  price: number;
+  isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}

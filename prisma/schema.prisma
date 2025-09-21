@@ -13,6 +13,13 @@ enum Role {
   CLIENT
 }
 
+enum EventStatus {
+  OPEN
+  ONGOING
+  CANCELLED
+  DONE
+}
+
 model User {
   id         Int      @id @default(autoincrement())
   firstName  String   @map("first_name")
@@ -38,4 +45,23 @@ model RefreshToken {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("refresh_tokens")
+}
+
+model Event {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String?
+  startDate   DateTime    @map("start_date")
+  endDate     DateTime    @map("end_date")
+  venue       String
+  country     String
+  city        String
+  status      EventStatus @default(OPEN)
+  maxCapacity Int         @map("max_capacity")
+  price       Decimal     @db.Decimal(10, 2)
+  isDeleted   Boolean     @default(false) @map("is_deleted")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  @@map("events")
 } 
