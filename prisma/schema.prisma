@@ -21,6 +21,7 @@ model User {
   birthday   DateTime
   password   String
   role       Role     @default(CLIENT)
+  isDeleted  Boolean  @default(false) @map("is_deleted")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
   refreshTokens RefreshToken[]

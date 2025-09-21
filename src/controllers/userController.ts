@@ -10,9 +10,16 @@ import {
 const prisma = new PrismaClient();
 
 // Get all users
-export const getAllUsers = async (_req: any, res: Response) => {
+export const getAllUsers = async (req: any, res: Response) => {
   try {
+    const { role } = req.query;
+
+    const whereClause: any = { isDeleted: false };
+    if (role) {
+      whereClause.role = role;
+    }
     const users = await prisma.user.findMany({
+      where: whereClause,
       select: {
         id: true,
         firstName: true,
@@ -34,8 +41,11 @@ export const getAllUsers = async (_req: any, res: Response) => {
 export const getUserById = async (req: any, res: Response) => {
   try {
     const { id } = req.params;
-    const user = await prisma.user.findUnique({
-      where: { id: parseInt(id) },
+    const user = await prisma.user.findFirst({
+      where: {
+        id: parseInt(id),
+        isDeleted: false,
+      },
       select: {
         id: true,
         firstName: true,
@@ -112,16 +122,16 @@ export const updateUser = async (
 ) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, email, birthday, password, role } = req.body;
+    const { firstName, lastName, email } = req.body;
 
-    // If password is provided, hash it
-    const data: any = { firstName, lastName, email, birthday, role };
-    if (password) {
-      data.password = await bcrypt.hash(password, 10);
-    }
+    // Only allow updating firstName, lastName, and email
+    const data = { firstName, lastName, email };
 
     const updatedUser = await prisma.user.update({
-      where: { id: parseInt(id) },
+      where: {
+        id: parseInt(id),
+        isDeleted: false,
+      },
       data,
       select: {
         id: true,
@@ -146,14 +156,27 @@ export const updateUser = async (
   }
 };
 
-// Delete user
+// Delete user (soft delete)
 export const deleteUser = async (req: any, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.user.delete({
-      where: { id: parseInt(id) },
+
+    // Soft delete: set isDeleted to true instead of actually deleting
+    const deletedUser = await prisma.user.update({
+      where: {
+        id: parseInt(id),
+        isDeleted: false,
+      },
+      data: { isDeleted: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+      },
     });
-    res.status(204).send();
+
+    res.json({ message: "User deleted successfully", user: deletedUser });
   } catch (error: any) {
     if (error.code === "P2025") {
       return res.status(404).json({ error: "User not found" });
