@@ -219,7 +219,7 @@ export const updateEvent = async (
     if (startDate !== undefined && endDate !== undefined) {
       const startDateObj = new Date(startDate);
       const endDateObj = new Date(endDate);
-      if (startDateObj >= endDateObj) {
+      if (startDateObj > endDateObj) {
         return res
           .status(400)
           .json({ error: "Start date must be before end date" });
