@@ -88,3 +88,36 @@ export interface EventResponse {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface ReservationCreateInput {
+  userId: number;
+  eventId: number;
+}
+
+import { Decimal } from "@prisma/client/runtime/library";
+
+export interface ReservationResponse {
+  id: number;
+  userId: number;
+  eventId: number;
+  price: Decimal;
+  isCancelled: boolean;
+  isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  event?: {
+    id: number;
+    name: string;
+    startDate: Date;
+    endDate: Date;
+    venue: string;
+    city: string;
+    country: string;
+  };
+}

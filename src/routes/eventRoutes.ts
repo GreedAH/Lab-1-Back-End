@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import {
   getAllEvents,
+  getAllEventsSortedByStatus,
   getEventById,
   createEvent,
   updateEvent,
@@ -13,7 +14,10 @@ import {
 
 const router: Router = express.Router();
 
-// Protect all event routes with authentication
+// Public route for getting events sorted by status (open first)
+router.get("/public/sorted", getAllEventsSortedByStatus);
+
+// Protect all other event routes with authentication
 router.use(authenticateToken);
 
 // Routes

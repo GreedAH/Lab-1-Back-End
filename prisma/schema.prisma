@@ -64,4 +64,17 @@ model Event {
   updatedAt   DateTime    @updatedAt @map("updated_at")
 
   @@map("events")
+}
+
+model Reservation {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  eventId     Int      @map("event_id")
+  price       Decimal  @db.Decimal(10, 2)
+  isCancelled Boolean  @default(false) @map("is_cancelled")
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("reservations")
 } 

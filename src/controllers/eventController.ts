@@ -51,6 +51,59 @@ export const getAllEvents = async (req: any, res: Response) => {
   }
 };
 
+// Get all events sorted by status (open events first) - Public route
+export const getAllEventsSortedByStatus = async (req: any, res: Response) => {
+  try {
+    const { country, city } = req.query;
+
+    const whereClause: any = { isDeleted: false };
+    if (country) {
+      whereClause.country = country;
+    }
+    if (city) {
+      whereClause.city = city;
+    }
+
+    const events = await prisma.event.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        startDate: true,
+        endDate: true,
+        venue: true,
+        country: true,
+        city: true,
+        status: true,
+        maxCapacity: true,
+        price: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: [
+        {
+          status: "asc", // This will put OPEN first, then other statuses alphabetically
+        },
+        {
+          startDate: "asc",
+        },
+      ],
+    });
+
+    // Custom sorting to ensure OPEN events come first
+    const sortedEvents = events.sort((a, b) => {
+      if (a.status === "OPEN" && b.status !== "OPEN") return -1;
+      if (a.status !== "OPEN" && b.status === "OPEN") return 1;
+      return 0; // Keep original order for same status
+    });
+
+    res.json(sortedEvents);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch events" });
+  }
+};
+
 // Get event by ID
 export const getEventById = async (req: any, res: Response) => {
   try {
