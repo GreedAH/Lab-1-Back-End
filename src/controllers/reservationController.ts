@@ -48,21 +48,6 @@ export const createReservation = async (
       });
     }
 
-    // Check if user already has a reservation for this event
-    const existingReservation = await prisma.reservation.findFirst({
-      where: {
-        userId: userId,
-        eventId: eventId,
-        isDeleted: false,
-      },
-    });
-
-    if (existingReservation) {
-      return res.status(400).json({
-        error: "User already has a reservation for this event",
-      });
-    }
-
     // Check event capacity
     const currentReservations = await prisma.reservation.count({
       where: {

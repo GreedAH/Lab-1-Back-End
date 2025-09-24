@@ -45,7 +45,20 @@ export const getAllEvents = async (req: any, res: Response) => {
         startDate: "asc",
       },
     });
-    res.json(events);
+
+    // Attach reservation count for each event (excluding cancelled)
+    const eventsWithReservationCount = await Promise.all(
+      events.map(async (event) => {
+        const reservationCount = await prisma.reservation.count({
+          where: {
+            eventId: event.id,
+            isCancelled: false,
+          },
+        });
+        return { ...event, reservationCount };
+      })
+    );
+    res.json(eventsWithReservationCount);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch events" });
   }
@@ -91,8 +104,21 @@ export const getAllEventsSortedByStatus = async (req: any, res: Response) => {
       ],
     });
 
+    // Attach reservation count for each event (excluding cancelled)
+    const eventsWithReservationCount = await Promise.all(
+      events.map(async (event) => {
+        const reservationCount = await prisma.reservation.count({
+          where: {
+            eventId: event.id,
+            isCancelled: false,
+          },
+        });
+        return { ...event, reservationCount };
+      })
+    );
+
     // Custom sorting to ensure OPEN events come first
-    const sortedEvents = events.sort((a, b) => {
+    const sortedEvents = eventsWithReservationCount.sort((a, b) => {
       if (a.status === "OPEN" && b.status !== "OPEN") return -1;
       if (a.status !== "OPEN" && b.status === "OPEN") return 1;
       return 0; // Keep original order for same status
@@ -134,7 +160,14 @@ export const getEventById = async (req: any, res: Response) => {
       return res.status(404).json({ error: "Event not found" });
     }
 
-    res.json(event);
+    // Attach reservation count for this event (excluding cancelled)
+    const reservationCount = await prisma.reservation.count({
+      where: {
+        eventId: event.id,
+        isCancelled: false,
+      },
+    });
+    res.json({ ...event, reservationCount });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch event" });
   }
