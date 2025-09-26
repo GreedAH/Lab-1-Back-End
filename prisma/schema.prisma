@@ -78,3 +78,17 @@ model Reservation {
 
   @@map("reservations")
 } 
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  reviewText String   @map("review_text")
+  rating     Int
+  eventId    Int      @map("event_id")
+  userId     Int      @map("user_id")
+  isDeleted  Boolean  @default(false) @map("is_deleted")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+
+  @@map("reviews")
+}

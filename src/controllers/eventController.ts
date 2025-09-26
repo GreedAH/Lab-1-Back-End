@@ -12,6 +12,7 @@ const prisma = new PrismaClient();
 export const getAllEvents = async (req: any, res: Response) => {
   try {
     const { status, country, city } = req.query;
+    // No review limit: return all non-deleted reviews per event
 
     const whereClause: any = { isDeleted: false };
     if (status) {
@@ -55,9 +56,33 @@ export const getAllEvents = async (req: any, res: Response) => {
             isCancelled: false,
           },
         });
-        return { ...event, reservationCount };
+
+        // Fetch all non-deleted reviews for this event sorted by rating desc
+        const reviews = await prisma.review.findMany({
+          where: { eventId: event.id, isDeleted: false },
+          orderBy: { rating: "desc" },
+        });
+
+        // Populate user data for each review (minimal fields)
+        const reviewsWithUser = await Promise.all(
+          reviews.map(async (r) => {
+            const userData = await prisma.user.findUnique({
+              where: { id: r.userId },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            });
+            return { ...r, user: userData || undefined };
+          })
+        );
+
+        return { ...event, reservationCount, reviews: reviewsWithUser };
       })
     );
+
     res.json(eventsWithReservationCount);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch events" });
@@ -68,6 +93,7 @@ export const getAllEvents = async (req: any, res: Response) => {
 export const getAllEventsSortedByStatus = async (req: any, res: Response) => {
   try {
     const { country, city } = req.query;
+    // No review limit: return all non-deleted reviews per event
 
     const whereClause: any = { isDeleted: false };
     if (country) {
@@ -113,7 +139,30 @@ export const getAllEventsSortedByStatus = async (req: any, res: Response) => {
             isCancelled: false,
           },
         });
-        return { ...event, reservationCount };
+
+        // Fetch all non-deleted reviews for this event sorted by rating desc
+        const reviews = await prisma.review.findMany({
+          where: { eventId: event.id, isDeleted: false },
+          orderBy: { rating: "desc" },
+        });
+
+        // Populate user data for each review (minimal fields)
+        const reviewsWithUser = await Promise.all(
+          reviews.map(async (r) => {
+            const userData = await prisma.user.findUnique({
+              where: { id: r.userId },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            });
+            return { ...r, user: userData || undefined };
+          })
+        );
+
+        return { ...event, reservationCount, reviews: reviewsWithUser };
       })
     );
 

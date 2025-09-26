@@ -121,3 +121,36 @@ export interface ReservationResponse {
     country: string;
   };
 }
+
+export interface ReviewCreateInput {
+  reviewText: string;
+  rating: number;
+  eventId: number;
+  userId: number;
+}
+
+export interface ReviewResponse {
+  id: number;
+  reviewText: string;
+  rating: number;
+  eventId: number;
+  userId: number;
+  isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  event?: {
+    id: number;
+    name: string;
+    startDate: Date;
+    endDate: Date;
+    venue: string;
+    city: string;
+    country: string;
+  };
+}
