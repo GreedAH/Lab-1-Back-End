@@ -145,3 +145,33 @@ export const logout = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// Forgot password: update password for given user ID (from route param)
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: "Password is required" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const updatedUser = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { password: hashedPassword },
+      select: { id: true, email: true },
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Password updated", user: updatedUser });
+  } catch (error: any) {
+    console.error("Forgot password error:", error);
+    if (error.code === "P2025") {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

@@ -68,6 +68,39 @@ export const getUserById = async (req: any, res: Response) => {
   }
 };
 
+// Find user by email
+export const findUserByEmail = async (req: any, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { email, isDeleted: false },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        birthday: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "No user with this email found" });
+    }
+
+    return res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch user by email" });
+  }
+};
+
 // Create new user
 export const createUser = async (
   req: TypedRequest<UserCreateInput>,
